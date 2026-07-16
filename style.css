@@ -1,0 +1,201 @@
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #1a0a2e;
+}
+
+#scene {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+#sky-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to bottom,
+    #4a66e0 0%,
+    #5058d0 15%,
+    #5a4ec4 35%,
+    #6a46b8 55%,
+    #8a54b0 75%,
+    #c8a2d8 100%
+  );
+}
+
+#sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#fg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+  transform-origin: center bottom;
+}
+
+#leaves {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  pointer-events: none;
+  overflow: visible;
+  contain: layout style;
+}
+
+#hud {
+  position: absolute;
+  top: 18vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  pointer-events: none;
+  text-align: center;
+  line-height: 1;
+  font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+  color: #fff;
+  user-select: none;
+}
+
+#hud-time {
+  font-size: clamp(72px, 9.5vw, 148px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-shadow:
+    0 0 18px rgba(180, 200, 255, 0.55),
+    0 0 48px rgba(140, 160, 255, 0.28),
+    0 2px 4px rgba(0, 0, 10, 0.45);
+}
+
+#hud-date {
+  margin-top: 0.18em;
+  font-size: clamp(16px, 1.9vw, 30px);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  opacity: 0.82;
+  text-shadow:
+    0 0 12px rgba(180, 200, 255, 0.4),
+    0 1px 3px rgba(0, 0, 10, 0.5);
+}
+
+/* Static gradient — no backdrop-filter blur (was costing a per-frame GPU pass) */
+#bottom-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 72px;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.28) 100%);
+}
+
+.branch {
+  position: absolute;
+  left: var(--root-x);
+  top: var(--root-y);
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+}
+
+/* Drifting leaves only — attached leaves are baked into the branch canvas */
+.leaf {
+  display: block;
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  opacity: var(--opacity);
+  background: none;
+  transform-origin: 50% 88%;
+}
+
+.leaf::before,
+.leaf::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.leaf::before {
+  inset: 0;
+  background:
+    radial-gradient(circle at 38% 24%, var(--leaf-hi), transparent 44%),
+    linear-gradient(145deg, var(--leaf-hi) 0%, var(--leaf) 46%, var(--leaf-lo) 100%);
+  clip-path: polygon(var(--shape));
+  transform: scale(1.08);
+}
+
+.leaf::after {
+  left: calc(50% - 0.5px);
+  top: 12%;
+  width: 1px;
+  height: 78%;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, rgba(154, 125, 229, 0.48), rgba(5, 1, 16, 0.25));
+  transform: rotate(4deg);
+  transform-origin: 50% 100%;
+  opacity: 0.42;
+}
+
+.leaf--drift {
+  top: -40px;
+  animation: drift var(--dur) linear forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes drift {
+  0% {
+    transform:
+      translate3d(0, 0, 0)
+      rotate(var(--rot))
+      skewX(var(--skew));
+    opacity: 0;
+  }
+  8% {
+    opacity: var(--opacity);
+  }
+  28% {
+    transform:
+      translate3d(calc(var(--wind-x) * 0.28), 28vh, 0)
+      rotate(calc(var(--rot) + 120deg))
+      skewX(calc(var(--skew) * -0.5));
+  }
+  58% {
+    transform:
+      translate3d(calc(var(--wind-x) * 0.74), 60vh, 0)
+      rotate(calc(var(--rot) + 245deg))
+      skewX(var(--skew));
+  }
+  82% {
+    opacity: calc(var(--opacity) * 0.75);
+  }
+  100% {
+    transform:
+      translate3d(var(--wind-x), 112vh, 0)
+      rotate(calc(var(--rot) + 390deg))
+      skewX(calc(var(--skew) * -0.25));
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leaf--drift { display: none; }
+}
